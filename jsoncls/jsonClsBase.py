@@ -131,13 +131,13 @@ class JsonCls(object):
                 member_value = []
                 for item in json_value:
                     if member.cls and isinstance(member, CustomMember):
-                        if isinstance(member.cls(), JsonCls):
+                        if issubclass(member.cls, JsonCls):
                             member_value.append(member.cls().json(item))
                         else:
                             member_value.append(member.cls(item))
                     elif member.cls_factory:
                         cls_factory = member.cls_factory(item)
-                        if isinstance(cls_factory(), JsonCls):
+                        if issubclass(cls_factory, JsonCls):
                             member_value.append(cls_factory().json(item))
                         else:
                             member_value.append(cls_factory(item))
@@ -149,7 +149,7 @@ class JsonCls(object):
                         # For CustomMembers, create an object for each dict item
                         member_value = {}
                         for key, value in json_value.items():
-                            if isinstance(member.cls(), JsonCls):
+                            if issubclass(member.cls, JsonCls):
                                 member_value.update({key : member.cls().json(value)})
                             else:
                                 member_value.update({key : member.cls(value)})
@@ -157,19 +157,19 @@ class JsonCls(object):
                         cls_factory = member.cls_factory(value)
                         member_value = {}
                         for key, value in json_value.items():
-                            if isinstance(cls_factory(), JsonCls):
+                            if issubclass(cls_factory, JsonCls):
                                 member_value.update({key : cls_factory().json(value)})
                             else:
                                 member_value.update({key : cls_factory(value)})
                 else:
                     if member.cls and isinstance(member, CustomMember) and isinstance(json_value, dict):
-                        if isinstance(member.cls(), JsonCls):
+                        if issubclass(member.cls, JsonCls):
                             member_value = member.cls().json(json_value)
                         else:
                             member_value = member.cls(json_value)
                     elif member.cls_factory:
                         cls_factory = member.cls_factory(json_value)
-                        if isinstance(cls_factory(), JsonCls):
+                        if issubclass(cls_factory, JsonCls):
                             member_value = cls_factory().json(json_value)
                         else:
                             member_value = cls_factory(json_value) 
