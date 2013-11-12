@@ -1,10 +1,9 @@
-
 '''jsoncls - A library for mapping between JSON and Python objects
 
 Created on Apr 2, 2013
 
-@author: john
-@copyright: John McCormick
+@author: schlameel
+@copyright: Schlameel
 @license: GPL v3.0
 '''
 
