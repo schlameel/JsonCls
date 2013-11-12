@@ -1,8 +1,8 @@
 '''
 Created on Apr 1, 2013
 
-@author: john
-@copyright: John McCormick
+@author: schlameel
+@copyright: Schlameel
 @license: GPL v3.0
 '''
 from jsoncls.memberSet import MemberSet
