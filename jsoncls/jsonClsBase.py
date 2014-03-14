@@ -49,7 +49,7 @@ class JsonClsBase(type):
                 setattr(new_class, obj_name, obj)
             
         #Process Members
-        _members = {}
+        _members = dict((k,v) for d in parents if hasattr(d, '_members') for (k,v) in d._members.items())
         for member_name, member in members.items():
             # Add the member names as attributes applying the specified class
             if member.cls:
@@ -69,7 +69,10 @@ class JsonClsBase(type):
         setattr(new_class, '_mapper', _mapper)
 
         #Process Filters
+        parent_member_sets = dict((k,v) for d in parents if hasattr(d, '_member_sets') for (k,v) in d._member_sets.items())
         for member_set_name, member_set in _member_sets.items():
+            if member_set_name in parent_member_sets:
+                setattr(member_set, 'members', getattr(member_set, 'members') + getattr(parent_member_sets[member_set_name], 'members'))
             setattr(member_set,'name', member_set_name)
             setattr(new_class, member_set_name, member_set)
         setattr(new_class, '_member_sets', _member_sets)
