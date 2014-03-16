@@ -9,12 +9,13 @@ Created on Apr 1, 2013
 class Mapper(object):
     '''An object that allows a custom mapping of member name to json name.
     '''
+    force_mapper = False
 
-    def __init__(self):
+    def __init__(self, force_mapper=False):
         '''
         Constructor
         '''
-        pass
+        self.force_mapper = force_mapper
     
     def toJson(self, s):
         return s
@@ -29,6 +30,9 @@ class CamelMapper(Mapper):
     '''Map camelCase between json item names and pythonic member names
     camelCase <-> camel_case
     '''
+    
+    def __init__(self, force_mapper=False):
+        self.force_mapper = force_mapper
     
     def toJson(self, s):
         ret = ''
@@ -63,6 +67,9 @@ class InitialCapsMapper(Mapper):
     '''Map initial caps between json item names and pythonic member names
     InitialCaps <-> initial_caps
     '''
+    
+    def __init__(self, force_mapper=False):
+        self.force_mapper = force_mapper
     
     def toJson(self, s):
         ret = s[0].upper()
@@ -101,7 +108,8 @@ class NamedMapper(Mapper):
     _member2json = {}
     _json2member = {}
     
-    def __init__(self, names):
+    def __init__(self, names, force_mapper=False):
+        self.force_mapper = force_mapper
         for name in names:
             self._member2json.update({name['member'] : name['json']})
             self._json2member.update({name['json'] : name['member']})
