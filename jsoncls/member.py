@@ -19,6 +19,7 @@ class Member(object):
     allow_none = True
     all_keys = False
     path = None
+    _explicit_json_name = None
 
     def __init__(self, cls=None, islist=False, isprivate=False, enforce_type=False, 
                  json_name=None, all_keys=False, keys=None, path=None, cls_factory=None):
@@ -33,34 +34,48 @@ class Member(object):
         self.cls_factory = cls_factory
         
     def types_agree(self, value):
-            if not value:
-                return self.allow_none
-            if self.islist and isinstance(value, list):
-                if len(value) > 0:
-                    value = value[0]
-                else:
-                    return self.allow_none
-            
-            if isinstance(self, IntMember):
-                return isinstance(value, int)
-            elif isinstance(self, LongMember):
-                return isinstance(value, long)
-            elif isinstance(self, FloatMember):
-                return isinstance(value, float)
-            elif isinstance(self, BasestringMember):
-                return isinstance(value, basestring)
-            elif isinstance(self, StrMember):
-                return isinstance(value, str)
-            elif isinstance(self, UnicodeMember):
-                return isinstance(value, unicode)
-            elif isinstance(self, BoolMember):
-                return isinstance(value, bool)
-            elif isinstance(self, CustomMember):
-                return isinstance(value, dict)
-            elif isinstance(self, Member):
-                return True
+        if not value:
+            return self.allow_none
+        if self.islist and isinstance(value, list):
+            if len(value) > 0:
+                value = value[0]
             else:
-                return False
+                return self.allow_none
+        
+        if isinstance(self, IntMember):
+            return isinstance(value, int)
+        elif isinstance(self, LongMember):
+            return isinstance(value, long)
+        elif isinstance(self, FloatMember):
+            return isinstance(value, float)
+        elif isinstance(self, BasestringMember):
+            return isinstance(value, basestring)
+        elif isinstance(self, StrMember):
+            return isinstance(value, str)
+        elif isinstance(self, UnicodeMember):
+            return isinstance(value, unicode)
+        elif isinstance(self, BoolMember):
+            return isinstance(value, bool)
+        elif isinstance(self, CustomMember):
+            return isinstance(value, dict)
+        elif isinstance(self, Member):
+            return True
+        else:
+            return False
+        
+    def read(self, value):
+        '''Convert value (the value of the member) to a valid type JSON
+        accepts.  For instance an array of bytes might be converted to 
+        a hexidecimal string.
+        '''
+        return value
+    
+    def write(self, value):
+        '''Convert value (the value of the member) from the JSON type
+        to the expected type.  For instance a hexidecimal string might  
+        be converted to an array of bytes.
+        '''
+        return value
 
 class IntMember(Member):
     '''Integer Member
