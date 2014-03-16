@@ -32,13 +32,15 @@ class JsonClsBase(type):
         # Get Members and non-Members
         members = {}
         _member_sets = {}
+        force_mapper = False
         if '_mapper' in attrs:
             _mapper = attrs.pop('_mapper')
+            force_mapper = _mapper.force_mapper
         elif hasattr(new_class, '_mapper'):
             _mapper = getattr(new_class, '_mapper')
         else:
             _mapper = DirectMapper()
-            
+
         for obj_name, obj in attrs.items():
             if isinstance(obj, Member):
                 members.update({obj_name : obj})
@@ -47,9 +49,21 @@ class JsonClsBase(type):
             else:
                 # Add the non members
                 setattr(new_class, obj_name, obj)
-            
-        #Process Members
+        
+        # Get inherited members
         _members = dict((k,v) for d in parents if hasattr(d, '_members') for (k,v) in d._members.items())
+        if force_mapper:
+            # if specified, apply Mapper to inherited Members 
+            for member_name, member in _members.items():
+                if not member._explicit_json_name:
+                    if member.isprivate:
+                        map_member_name = _public_name(member_name)
+                    else:
+                        map_member_name = member_name
+                    member.json_name = _mapper.toJson(map_member_name)
+                    _members.update({member_name : member})
+                    
+        #Process Members
         for member_name, member in members.items():
             # Add the member names as attributes applying the specified class
             if member.cls:
@@ -61,7 +75,10 @@ class JsonClsBase(type):
                 map_member_name = _public_name(member_name)
             else:
                 map_member_name = member_name
-            if not member.json_name:
+            # store explicit json_name
+            if member.json_name:
+                member._explicit_json_name = member.json_name
+            else:
                 member.json_name = _mapper.toJson(map_member_name)
             _members.update({member_name : member})
         # Add the list of completed members
@@ -101,9 +118,9 @@ class JsonCls(object):
                         dct.update({member.json_name : attr})
             elif attr is not None:
                 if member.path:
-                    dct.update(self._path_infuse(obj=dct, path=member.path, value=attr))
+                    dct.update(self._path_infuse(obj=dct, path=member.path, value=member.read(attr)))
                 else:
-                    dct.update({member.json_name : attr})
+                    dct.update({member.json_name : member.read(attr)})
         return dct
     
     def _is_empty(self, obj):
@@ -176,7 +193,7 @@ class JsonCls(object):
                             member_value = built_cls().json(json_value)
                         else:
                             member_value = built_cls(json_value) 
-            setattr(self, member_name, member_value)
+            setattr(self, member_name, member.write(member_value))
                         
     def _from_json_string(self, json_string):
         self._from_json_dct(json.loads(json_string))
