@@ -1,6 +1,6 @@
 jsoncls - A library for mapping between JSON and Python objects
 
-    Copyright (C) 2013  John McCormick
+    Copyright (C) 2013-2017  John McCormick
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
