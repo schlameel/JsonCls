@@ -18,7 +18,9 @@ class ObjectEncoder(json.JSONEncoder):
                 s = json.JSONEncoder.default(self, obj)
                 return s
             except TypeError as e:
-                print obj
+                #print obj
+                # Removing print statement for initial python3 testing
+                pass
 
 def json_dumps(obj, indent=0):
     if indent:
