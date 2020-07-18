@@ -17,11 +17,11 @@ __author__ = "John McCormick"
 __copyright__ = "Copyright 2013, John McCormick"
 __credits__ = ["John McCormick"]
 __license__ = "GPL 3.0"
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 __maintainer__ = "John McCormick"
 __status__ = "Alpha"
 
-VERSION = (0, 1, 0, 'alpha', 0)
+VERSION = (0, 1, 1, 'alpha', 0)
 
 def get_version(version=None):
     """Derives a PEP386-compliant version number from VERSION."""
