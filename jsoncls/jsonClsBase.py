@@ -10,6 +10,7 @@ from jsoncls.mapper import DirectMapper
 from jsoncls.member import Member, CustomMember
 from jsoncls.core import  json_dumps
 import json
+import six
 
 class JsonClsBase(type):
     '''The metaclass that builds JsonCls classes
@@ -28,10 +29,11 @@ class JsonClsBase(type):
         # Create the class.
         module = attrs.pop('__module__')
         new_class = super_new(cls, name, bases, {'__module__': module})
-        
+
         # Get Members and non-Members
         members = {}
         _member_sets = {}
+        _mapper = None
         force_mapper = False
         if '_mapper' in attrs:
             _mapper = attrs.pop('_mapper')
@@ -49,11 +51,11 @@ class JsonClsBase(type):
             else:
                 # Add the non members
                 setattr(new_class, obj_name, obj)
-        
+
         # Get inherited members
         _members = dict((k,v) for d in parents if hasattr(d, '_members') for (k,v) in d._members.items())
         if force_mapper:
-            # if specified, apply Mapper to inherited Members 
+            # if specified, apply Mapper to inherited Members
             for member_name, member in _members.items():
                 if not member._explicit_json_name:
                     if member.isprivate:
@@ -62,7 +64,7 @@ class JsonClsBase(type):
                         map_member_name = member_name
                     member.json_name = _mapper.toJson(map_member_name)
                     _members.update({member_name : member})
-                    
+
         #Process Members
         for member_name, member in members.items():
             # Add the member names as attributes applying the specified class
@@ -93,19 +95,18 @@ class JsonClsBase(type):
             setattr(member_set,'name', member_set_name)
             setattr(new_class, member_set_name, member_set)
         setattr(new_class, '_member_sets', _member_sets)
-            
+
         return new_class
-    
+
 def _public_name(s):
     while s.startswith('_'):
         s = s[1:]
     return s
-    
-class JsonCls(object):
+
+class JsonCls(metaclass=JsonClsBase):
     '''The base inheritable class
     '''
-    __metaclass__ = JsonClsBase
-    
+
     def __reprJSON__(self):
         dct = {}
         for member_name, member in self._members.items():
@@ -122,7 +123,7 @@ class JsonCls(object):
                 else:
                     dct.update({member.json_name : member.read(attr)})
         return dct
-    
+
     def _is_empty(self, obj):
         for member_name, member in obj._members.items():
             attr = getattr(obj, member_name)
@@ -133,7 +134,7 @@ class JsonCls(object):
                 else:
                         return False
         return True
-    
+
     def _from_json_dct(self, json_dct):
         for member_name, member in self._members.items():
             if member.path:
@@ -145,7 +146,7 @@ class JsonCls(object):
             if member.enforce_type and member.cls:
                 if not member.types_agree(json_value):
                     raise TypeError('JSON value type {0} of item "{1}" does not agree with member.cls{2}'.format(type(json_value), member.json_name, type(member.cls)))
-            
+
             member_value = json_value
             if isinstance(json_value, list):
                 member_value = []
@@ -156,7 +157,7 @@ class JsonCls(object):
                         else:
                             member_value.append(member.cls(item))
                     elif member.cls_factory:
-                        built_cls = member.cls_factory(item) 
+                        built_cls = member.cls_factory(item)
                         if issubclass(built_cls, JsonCls):
                             member_value.append(built_cls().json(item))
                         else:
@@ -192,18 +193,18 @@ class JsonCls(object):
                         if issubclass(built_cls, JsonCls):
                             member_value = built_cls().json(json_value)
                         else:
-                            member_value = built_cls(json_value) 
+                            member_value = built_cls(json_value)
             setattr(self, member_name, member.write(member_value))
-                        
+
     def _from_json_string(self, json_string):
         self._from_json_dct(json.loads(json_string))
-    
+
     def _path_infuse(self, obj, path, value, indicies=None):
         key = path.split('.')[0]
         next_path = '.'.join(path.split('.')[1:])
         if not key:
             return value
-        
+
         if key == '[]':
             if not (obj and isinstance(obj, list)):
                 obj = []
@@ -225,7 +226,7 @@ class JsonCls(object):
                 next_obj = obj.get(key)
             obj.update({key : self._path_infuse(next_obj, next_path, value, indicies)})
         return obj
-    
+
     def _path_extract(self, obj, path):
         current = obj
         extract_list = False
@@ -247,12 +248,12 @@ class JsonCls(object):
                 return None
                 break
         return current
-    
+
     def _prefill(self, obj, count=0):
         if len(obj) <= count:
             for i in range(len(obj), count + 1):
                 obj.append(None)
-    
+
     def json(self, json_in=None, as_dict=False, member_set=None, indent=0, *args):
         ''':param json_in: the source JSON
         :type json_in: string or dict
@@ -269,25 +270,26 @@ class JsonCls(object):
         if json_in or len(args) > 0:
             if not json_in:
                 json_in = args[0]
-            if isinstance(json_in, basestring):
-                self._from_json_string(json_in)
-            else:
-                self._from_json_dct(json_in)
+            try:
+                if isinstance(json_in, six.string_types):
+                    self._from_json_string(json_in)
+                else:
+                    self._from_json_dct(json_in)
+            except NameError as e:
+                if isinstance(json_in, str):
+                    self._from_json_string(json_in)
+                else:
+                    self._from_json_dct(json_in)
             return self
         elif member_set:
             for member in member_set.members:
                 if getattr(self, member.member_name):
                     dct.update({member.json_name:getattr(self, member.member_name)})
-                
+
         else:
             dct = self.__reprJSON__()
-        
+
         if as_dict:
             return dct
         else:
             return json_dumps(dct, indent)
-    
-    
-    
-
-    

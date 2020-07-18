@@ -6,6 +6,8 @@ Created on Apr 1, 2013
 @license: GPL v3.0
 '''
 
+import six
+
 class Member(object):
     '''The base class for a JsonCls member
     '''
@@ -21,7 +23,7 @@ class Member(object):
     path = None
     _explicit_json_name = None
 
-    def __init__(self, cls=None, islist=False, isprivate=False, enforce_type=False, 
+    def __init__(self, cls=None, islist=False, isprivate=False, enforce_type=False,
                  json_name=None, all_keys=False, keys=None, path=None, cls_factory=None):
         self.cls = cls
         self.islist = islist
@@ -32,7 +34,7 @@ class Member(object):
         self.keys = keys
         self.path = path
         self.cls_factory = cls_factory
-        
+
     def types_agree(self, value):
         if not value:
             return self.allow_none
@@ -41,19 +43,15 @@ class Member(object):
                 value = value[0]
             else:
                 return self.allow_none
-        
+
         if isinstance(self, IntMember):
             return isinstance(value, int)
         elif isinstance(self, LongMember):
             return isinstance(value, long)
         elif isinstance(self, FloatMember):
             return isinstance(value, float)
-        elif isinstance(self, BasestringMember):
-            return isinstance(value, basestring)
-        elif isinstance(self, StrMember):
-            return isinstance(value, str)
-        elif isinstance(self, UnicodeMember):
-            return isinstance(value, unicode)
+        elif isinstance(self, StringMember):
+            return isinstance(value, six.string_types)
         elif isinstance(self, BoolMember):
             return isinstance(value, bool)
         elif isinstance(self, CustomMember):
@@ -62,25 +60,25 @@ class Member(object):
             return True
         else:
             return False
-        
+
     def read(self, value):
         '''Convert value (the value of the member) to a valid type JSON
-        accepts.  For instance an array of bytes might be converted to 
+        accepts.  For instance an array of bytes might be converted to
         a hexidecimal string.
         '''
         return value
-    
+
     def write(self, value):
         '''Convert value (the value of the member) from the JSON type
-        to the expected type.  For instance a hexidecimal string might  
+        to the expected type.  For instance a hexidecimal string might
         be converted to an array of bytes.
         '''
         return value
 
 class IntMember(Member):
     '''Integer Member
-    '''     
-    def __init__(self, islist=False, isprivate=False, enforce_type=True, json_name=None, 
+    '''
+    def __init__(self, islist=False, isprivate=False, enforce_type=True, json_name=None,
                  all_keys=False, keys=None, path=None):
         self.cls = int
         self.islist = islist
@@ -90,11 +88,11 @@ class IntMember(Member):
         self.all_keys = all_keys
         self.keys = keys
         self.path = path
-        
+
 class LongMember(Member):
     '''Long Member
-    '''        
-    def __init__(self, islist=False, isprivate=False, enforce_type=True, json_name=None, 
+    '''
+    def __init__(self, islist=False, isprivate=False, enforce_type=True, json_name=None,
                  all_keys=False, keys=None, path=None):
         self.cls = long
         self.islist = islist
@@ -104,11 +102,11 @@ class LongMember(Member):
         self.all_keys = all_keys
         self.keys = keys
         self.path = path
-        
+
 class FloatMember(Member):
     '''Float Member
-    '''        
-    def __init__(self, islist=False, isprivate=False, enforce_type=True, json_name=None, 
+    '''
+    def __init__(self, islist=False, isprivate=False, enforce_type=True, json_name=None,
                  all_keys=False, keys=None, path=None):
         self.cls = float
         self.islist = islist
@@ -118,13 +116,13 @@ class FloatMember(Member):
         self.all_keys = all_keys
         self.keys = keys
         self.path = path
-        
-class BasestringMember(Member):
-    '''basestring Member
-    '''      
-    def __init__(self, islist=False, isprivate=False, enforce_type=True, json_name=None, 
+
+class StringMember(Member):
+    '''All python strings, via six, Member
+    '''
+    def __init__(self, islist=False, isprivate=False, enforce_type=True, json_name=None,
                  all_keys=False, keys=None, path=None):
-        self.cls = basestring
+        self.cls = six.string_types
         self.islist = islist
         self.isprivate = isprivate
         self.enforce_type = enforce_type
@@ -132,39 +130,11 @@ class BasestringMember(Member):
         self.all_keys = all_keys
         self.keys = keys
         self.path = path
-        
-class StrMember(Member):
-    '''string Member
-    '''        
-    def __init__(self, islist=False, isprivate=False, enforce_type=True, json_name=None, 
-                 all_keys=False, keys=None, path=None):
-        self.cls = str
-        self.islist = islist
-        self.isprivate = isprivate
-        self.enforce_type = enforce_type
-        self.json_name = json_name
-        self.all_keys = all_keys
-        self.keys = keys
-        self.path = path
-        
-class UnicodeMember(Member):       
-    '''Unicode Member
-    ''' 
-    def __init__(self, islist=False, isprivate=False, enforce_type=True, json_name=None, 
-                 all_keys=False, keys=None, path=None):
-        self.cls = unicode
-        self.islist = islist
-        self.isprivate = isprivate
-        self.enforce_type = enforce_type
-        self.json_name = json_name
-        self.all_keys = all_keys
-        self.keys = keys
-        self.path = path
-        
+
 class BoolMember(Member):
     '''Bool Member
     '''
-    def __init__(self, islist=False, isprivate=False, enforce_type=True, json_name=None, 
+    def __init__(self, islist=False, isprivate=False, enforce_type=True, json_name=None,
                  all_keys=False, keys=None, path=None):
         self.cls = bool
         self.islist = islist
@@ -174,11 +144,11 @@ class BoolMember(Member):
         self.all_keys = all_keys
         self.keys = keys
         self.path = path
-        
+
 class CustomMember(Member):
     '''Member of a custom class
     '''
-    def __init__(self,cls=None, islist=False, isprivate=False, enforce_type=True, json_name=None, 
+    def __init__(self,cls=None, islist=False, isprivate=False, enforce_type=True, json_name=None,
                  all_keys=False, keys=None, path=None, cls_factory=None):
         self.cls = cls
         self.cls_factory = cls_factory
@@ -189,4 +159,3 @@ class CustomMember(Member):
         self.all_keys = all_keys
         self.keys = keys
         self.path = path
-        

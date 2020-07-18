@@ -8,7 +8,7 @@ Created on Apr 2, 2013
 '''
 
 from jsoncls.jsonClsBase import JsonCls
-from jsoncls.member import Member, IntMember, LongMember, FloatMember, BasestringMember, StrMember, UnicodeMember, BoolMember, CustomMember
+from jsoncls.member import Member, IntMember, LongMember, FloatMember, StringMember, BoolMember, CustomMember
 from jsoncls.mapper import CamelMapper, DirectMapper, Mapper, InitialCapsMapper, NamedMapper
 from jsoncls.core import json_dumps
 from jsoncls.memberSet import MemberSet
@@ -51,4 +51,3 @@ def get_version(version=None):
         sub = mapping[version[3]] + str(version[4])
 
     return main + sub
-
